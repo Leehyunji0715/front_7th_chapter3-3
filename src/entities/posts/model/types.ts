@@ -1,18 +1,15 @@
-export interface PostDTO extends Post {
-  userId: string
-}
+import { UserDTO } from "../../user/model/types"
 
-export interface Post {
-  id: string
+export interface PostDTO {
+  body: string
+  id: number
+  reactions: { likes: number; dislikes: number }
   tags: string[]
-  author: Author | undefined
-  reactions: {
-    likes: number
-    dislikes: number
-  }
+  title: string
+  userId: number
+  views: number
 }
 
-interface Author {
-  username: string
-  image: string
+export interface Post extends PostDTO {
+  author: UserDTO | undefined
 }

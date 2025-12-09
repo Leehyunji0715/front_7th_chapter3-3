@@ -1,4 +1,8 @@
-// export interface UserDTO {}
+export interface UserDTO {
+  id: number
+  image: string
+  username: string
+}
 
 export interface User {
   id: string

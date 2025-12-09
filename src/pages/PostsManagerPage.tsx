@@ -25,6 +25,10 @@ import {
   TableRow,
   Textarea,
 } from "../components"
+import { Post } from "../entities/posts/model/types"
+import * as postApi from "../entities/posts/api/postApi"
+import * as userApi from "../entities/user/api/userApi"
+import { User } from "../entities/user/model/types"
 
 const PostsManager = () => {
   const navigate = useNavigate()
@@ -32,12 +36,12 @@ const PostsManager = () => {
   const queryParams = new URLSearchParams(location.search)
 
   // 상태 관리
-  const [posts, setPosts] = useState([])
+  const [posts, setPosts] = useState<Post[]>([])
   const [total, setTotal] = useState(0)
   const [skip, setSkip] = useState(parseInt(queryParams.get("skip") || "0"))
   const [limit, setLimit] = useState(parseInt(queryParams.get("limit") || "10"))
   const [searchQuery, setSearchQuery] = useState(queryParams.get("search") || "")
-  const [selectedPost, setSelectedPost] = useState(null)
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [sortBy, setSortBy] = useState(queryParams.get("sortBy") || "")
   const [sortOrder, setSortOrder] = useState(queryParams.get("sortOrder") || "asc")
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -53,7 +57,7 @@ const PostsManager = () => {
   const [showEditCommentDialog, setShowEditCommentDialog] = useState(false)
   const [showPostDetailDialog, setShowPostDetailDialog] = useState(false)
   const [showUserModal, setShowUserModal] = useState(false)
-  const [selectedUser, setSelectedUser] = useState(null)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
 
   // URL 업데이트 함수
   const updateURL = () => {
@@ -68,23 +72,13 @@ const PostsManager = () => {
   }
 
   // 게시물 가져오기
-  const fetchPosts = () => {
+  const fetchPosts = async () => {
     setLoading(true)
-    let postsData
-    let usersData
-
-    fetch(`/api/posts?limit=${limit}&skip=${skip}`)
-      .then((response) => response.json())
-      .then((data) => {
-        postsData = data
-        return fetch("/api/users?limit=0&select=username,image")
-      })
-      .then((response) => response.json())
-      .then((users) => {
-        usersData = users.users
+    Promise.all([postApi.fetchPosts({ limit, skip }), userApi.fetchUsers()])
+      .then(([postsData, usersData]) => {
         const postsWithUsers = postsData.posts.map((post) => ({
           ...post,
-          author: usersData.find((user) => user.id === post.userId),
+          author: usersData.users.find((user) => user.id === post.userId),
         }))
         setPosts(postsWithUsers)
         setTotal(postsData.total)
@@ -127,19 +121,16 @@ const PostsManager = () => {
   }
 
   // 태그별 게시물 가져오기
-  const fetchPostsByTag = async (tag) => {
+  const fetchPostsByTag = async (tag: string) => {
     if (!tag || tag === "all") {
       fetchPosts()
       return
     }
     setLoading(true)
     try {
-      const [postsResponse, usersResponse] = await Promise.all([
-        fetch(`/api/posts/tag/${tag}`),
-        fetch("/api/users?limit=0&select=username,image"),
-      ])
-      const postsData = await postsResponse.json()
-      const usersData = await usersResponse.json()
+      // TODO: Promise.all
+      const postsData = await postApi.fetchPostsByTag(tag)
+      const usersData = await userApi.fetchUsers()
 
       const postsWithUsers = postsData.posts.map((post) => ({
         ...post,
@@ -173,6 +164,7 @@ const PostsManager = () => {
 
   // 게시물 업데이트
   const updatePost = async () => {
+    if (!selectedPost) return
     try {
       const response = await fetch(`/api/posts/${selectedPost.id}`, {
         method: "PUT",
@@ -188,7 +180,7 @@ const PostsManager = () => {
   }
 
   // 게시물 삭제
-  const deletePost = async (id) => {
+  const deletePost = async (id: number) => {
     try {
       await fetch(`/api/posts/${id}`, {
         method: "DELETE",
@@ -200,7 +192,7 @@ const PostsManager = () => {
   }
 
   // 댓글 가져오기
-  const fetchComments = async (postId) => {
+  const fetchComments = async (postId: number) => {
     if (comments[postId]) return // 이미 불러온 댓글이 있으면 다시 불러오지 않음
     try {
       const response = await fetch(`/api/comments/post/${postId}`)
@@ -268,7 +260,6 @@ const PostsManager = () => {
   // 댓글 좋아요
   const likeComment = async (id, postId) => {
     try {
-
       const response = await fetch(`/api/comments/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -277,7 +268,9 @@ const PostsManager = () => {
       const data = await response.json()
       setComments((prev) => ({
         ...prev,
-        [postId]: prev[postId].map((comment) => (comment.id === data.id ? {...data, likes: comment.likes + 1} : comment)),
+        [postId]: prev[postId].map((comment) =>
+          comment.id === data.id ? { ...data, likes: comment.likes + 1 } : comment,
+        ),
       }))
     } catch (error) {
       console.error("댓글 좋아요 오류:", error)
@@ -422,7 +415,7 @@ const PostsManager = () => {
   )
 
   // 댓글 렌더링
-  const renderComments = (postId) => (
+  const renderComments = (postId: string) => (
     <div className="mt-2">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-semibold">댓글</h3>
@@ -663,7 +656,7 @@ const PostsManager = () => {
           </DialogHeader>
           <div className="space-y-4">
             <p>{highlightText(selectedPost?.body, searchQuery)}</p>
-            {renderComments(selectedPost?.id)}
+            {selectedPost && renderComments(selectedPost.id)}
           </div>
         </DialogContent>
       </Dialog>

@@ -2,6 +2,7 @@ export interface UserDTO {
   id: number
   image: string
   username: string
+  fullName?: string
 }
 
 export interface User {

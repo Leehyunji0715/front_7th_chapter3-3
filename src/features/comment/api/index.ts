@@ -1,0 +1,1 @@
+export { likeComment } from "./likeCommentApi"

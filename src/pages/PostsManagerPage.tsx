@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { Plus } from "lucide-react"
 import {
   Button,
@@ -11,11 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../components"
-import { User } from "../entities/user"
 
 import { CommentList } from "../features/comment"
 import { usePosts, AddPostDialog, PostPagination } from "../features/post"
-import { UserDetailDialog } from "../features/user"
 import { PostTable } from "../widgets/ui/PostTable"
 import { PostSearchControls } from "../widgets/ui/PostSearchControls"
 import { Post } from "../entities/post"
@@ -41,14 +38,6 @@ const PostsManager = () => {
   // 게시물 상세 다이얼로그 열기
   const handleOpenPostDetail = (post: Post) => {
     actions.openPostDetail(post)
-  }
-
-  // 사용자 모달 상태
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
-
-  // 사용자 모달 열기
-  const openUserModal = (user: User) => {
-    setSelectedUserId(user.id)
   }
 
   // 하이라이트 함수 추가
@@ -83,7 +72,7 @@ const PostsManager = () => {
           <PostSearchControls />
 
           {/* 게시물 테이블 */}
-          <PostTable onUserClick={openUserModal} onPostDetail={handleOpenPostDetail} />
+          <PostTable onPostDetail={handleOpenPostDetail} />
 
           {/* 페이지네이션 */}
           <PostPagination />
@@ -116,9 +105,6 @@ const PostsManager = () => {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* 사용자 모달 */}
-      <UserDetailDialog userId={selectedUserId} onClose={() => setSelectedUserId(null)} />
     </Card>
   )
 }

@@ -2,7 +2,6 @@ import { useMemo, useState } from "react"
 import { Edit2, MessageSquare, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react"
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components"
 import { Tag } from "../../entities/ui"
-import { User } from "../../entities/user"
 import { Post } from "../../entities/post/model/types"
 import {
   useDeletePostMutation,
@@ -14,19 +13,22 @@ import {
 import { useUsersQuery } from "../../entities/user/api/queries"
 import { usePostQueryParams } from "../../features/post/hooks"
 import { EditPostDialog } from "../../features/post/ui/EditPostDialog"
+import { UserDetailDialog } from "../../features/user"
 
 interface PostTableProps {
-  onUserClick: (user: User) => void
   onPostDetail: (post: Post) => void
 }
 
-export const PostTable = ({ onUserClick, onPostDetail }: PostTableProps) => {
+export const PostTable = ({ onPostDetail }: PostTableProps) => {
   const { mutate: deletePost } = useDeletePostMutation()
   const { mutate: updatePost } = useUpdatePostMutation()
 
   // 수정 다이얼로그 상태
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
+
+  // 사용자 모달 상태
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
   // URL에서 query params 읽기
   const { searchQuery, selectedTag, limit, skip, sortBy, sortOrder } = usePostQueryParams()
@@ -136,7 +138,7 @@ export const PostTable = ({ onUserClick, onPostDetail }: PostTableProps) => {
               <TableCell>
                 <div
                   className="flex items-center space-x-2 cursor-pointer"
-                  onClick={() => post.author && onUserClick(post.author as unknown as User)}
+                  onClick={() => post.author && setSelectedUserId(post.author.id.toString())}
                 >
                   <img src={post.author?.image} alt={post.author?.username} className="w-8 h-8 rounded-full" />
                   <span>{post.author?.username}</span>
@@ -175,6 +177,9 @@ export const PostTable = ({ onUserClick, onPostDetail }: PostTableProps) => {
         post={selectedPost}
         onSubmit={handleUpdatePost}
       />
+
+      {/* 사용자 모달 */}
+      <UserDetailDialog userId={selectedUserId} onClose={() => setSelectedUserId(null)} />
     </>
   )
 }

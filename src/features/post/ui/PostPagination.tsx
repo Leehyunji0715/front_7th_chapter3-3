@@ -1,40 +1,59 @@
+import { useNavigate } from "react-router-dom"
 import { ItemsPerPageSelector } from "./ItemsPerPageSelector"
 import { PaginationNavigation } from "./PaginationNavigation"
+import { usePostQueryParams } from "../hooks"
+import { usePostsQuery, useSearchPostsQuery, usePostsByTagQuery } from "../../../entities/post/api/queries"
 
-interface PostPaginationProps {
-  currentPage: number
-  itemsPerPage: number
-  totalItems: number
-  onPageChange: (skip: number) => void
-  onItemsPerPageChange: (limit: number) => void
-}
+export const PostPagination = () => {
+  const navigate = useNavigate()
+  const { searchQuery, selectedTag, limit, skip } = usePostQueryParams()
 
-export const PostPagination = ({
-  currentPage,
-  itemsPerPage,
-  totalItems,
-  onPageChange,
-  onItemsPerPageChange,
-}: PostPaginationProps) => {
-  const skip = currentPage * itemsPerPage
+  // 현재 활성화된 쿼리에서 total 가져오기
+  const { data: postsData } = usePostsQuery({
+    limit,
+    skip,
+    enabled: !searchQuery && (!selectedTag || selectedTag === "all"),
+  })
+
+  const { data: searchData } = useSearchPostsQuery(searchQuery)
+  const { data: tagData } = usePostsByTagQuery(selectedTag)
+
+  const total = searchQuery
+    ? searchData?.total || 0
+    : selectedTag && selectedTag !== "all"
+      ? tagData?.total || 0
+      : postsData?.total || 0
+
+  const currentPage = Math.floor(skip / limit)
   const isFirstPage = currentPage === 0
-  const isLastPage = skip + itemsPerPage >= totalItems
+  const isLastPage = skip + limit >= total
 
   const handlePrevious = () => {
     if (!isFirstPage) {
-      onPageChange(Math.max(0, skip - itemsPerPage))
+      const params = new URLSearchParams(window.location.search)
+      params.set("skip", Math.max(0, skip - limit).toString())
+      navigate(`?${params.toString()}`)
     }
   }
 
   const handleNext = () => {
     if (!isLastPage) {
-      onPageChange(skip + itemsPerPage)
+      const params = new URLSearchParams(window.location.search)
+      params.set("skip", (skip + limit).toString())
+      navigate(`?${params.toString()}`)
     }
+  }
+
+  const handleItemsPerPageChange = (newLimit: number) => {
+    const params = new URLSearchParams(window.location.search)
+    params.set("limit", newLimit.toString())
+    params.set("skip", "0") // 페이지 크기 변경 시 첫 페이지로
+    navigate(`?${params.toString()}`)
   }
 
   return (
     <div className="flex justify-between items-center">
-      <ItemsPerPageSelector value={itemsPerPage} onChange={onItemsPerPageChange} />
+      <ItemsPerPageSelector value={limit} onChange={handleItemsPerPageChange} />
       <PaginationNavigation
         isFirstPage={isFirstPage}
         isLastPage={isLastPage}

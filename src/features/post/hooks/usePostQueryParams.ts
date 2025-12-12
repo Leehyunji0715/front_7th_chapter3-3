@@ -1,7 +1,9 @@
 import { useMemo } from "react"
+import { useLocation } from "react-router-dom"
 
 export const usePostQueryParams = () => {
-  const params = useMemo(() => new URLSearchParams(window.location.search), [])
+  const location = useLocation()
+  const params = useMemo(() => new URLSearchParams(location.search), [location.search])
 
   return {
     searchQuery: params.get("search") || "",

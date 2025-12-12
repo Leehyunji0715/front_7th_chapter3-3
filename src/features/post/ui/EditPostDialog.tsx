@@ -12,16 +12,15 @@ interface EditPostDialogProps {
 export const EditPostDialog = ({ isOpen, onClose, post, onSubmit }: EditPostDialogProps) => {
   const [editedPost, setEditedPost] = useState<Post | null>(post)
 
-  useEffect(() => {
-    setEditedPost(post)
-  }, [post])
-
   const handleSubmit = () => {
     if (editedPost) {
-      console.error("editedPost", editedPost)
       onSubmit(editedPost)
     }
   }
+
+  useEffect(() => {
+    setEditedPost(post)
+  }, [post])
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

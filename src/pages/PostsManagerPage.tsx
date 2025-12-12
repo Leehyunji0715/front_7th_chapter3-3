@@ -25,7 +25,7 @@ import { useAddPostMutation } from "../entities/post/api/queries"
 const PostsManager = () => {
   // Post 관련 상태와 로직을 커스텀 훅으로 분리
   const { selectedPost, dialogs, actions } = usePosts()
-  const { searchQuery, skip, limit } = usePostQueryParams()
+  const { searchQuery } = usePostQueryParams()
 
   const { mutate: addPost } = useAddPostMutation()
 
@@ -86,23 +86,7 @@ const PostsManager = () => {
           <PostTable onUserClick={openUserModal} onPostDetail={handleOpenPostDetail} />
 
           {/* 페이지네이션 */}
-          <PostPagination
-            currentPage={Math.floor(skip / limit)}
-            itemsPerPage={limit}
-            totalItems={0}
-            onPageChange={(newSkip: number) => {
-              const params = new URLSearchParams(window.location.search)
-              params.set("skip", newSkip.toString())
-              window.history.pushState({}, "", `?${params.toString()}`)
-              window.dispatchEvent(new PopStateEvent("popstate"))
-            }}
-            onItemsPerPageChange={(newLimit: number) => {
-              const params = new URLSearchParams(window.location.search)
-              params.set("limit", newLimit.toString())
-              window.history.pushState({}, "", `?${params.toString()}`)
-              window.dispatchEvent(new PopStateEvent("popstate"))
-            }}
-          />
+          <PostPagination />
         </div>
       </CardContent>
 

@@ -15,6 +15,7 @@ import { useUsersQuery } from "../../entities/user/api/queries"
 import { usePostQueryParams } from "../../features/post/hooks"
 import { EditPostDialog } from "../../features/post/ui/EditPostDialog"
 import { UserDetailDialog } from "../../features/user"
+import { HighlightText } from "../../shared/ui"
 
 interface PostTableProps {
   onPostDetail: (post: Post) => void
@@ -74,21 +75,6 @@ export const PostTable = ({ onPostDetail }: PostTableProps) => {
     }))
   }, [searchQuery, searchData, selectedTag, tagData, postsData, usersData])
 
-  // 하이라이트 함수
-  const highlightText = (text: string | undefined, highlight: string) => {
-    if (!text) return null
-    if (!highlight.trim()) {
-      return <span>{text}</span>
-    }
-    const regex = new RegExp(`(${highlight})`, "gi")
-    const parts = text.split(regex)
-    return (
-      <span>
-        {parts.map((part, i) => (regex.test(part) ? <mark key={i}>{part}</mark> : <span key={i}>{part}</span>))}
-      </span>
-    )
-  }
-
   // 태그 클릭 핸들러
   const handleTagClick = (tag: string) => {
     const params = new URLSearchParams(window.location.search)
@@ -121,7 +107,9 @@ export const PostTable = ({ onPostDetail }: PostTableProps) => {
               <TableCell>{post.id}</TableCell>
               <TableCell>
                 <div className="space-y-1">
-                  <div>{highlightText(post.title, searchQuery)}</div>
+                  <div>
+                    <HighlightText text={post.title} highlight={searchQuery} />
+                  </div>
 
                   <div className="flex flex-wrap gap-1">
                     {post.tags?.map((tag) => (

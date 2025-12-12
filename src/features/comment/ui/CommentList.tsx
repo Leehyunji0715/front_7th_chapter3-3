@@ -12,14 +12,14 @@ import {
 } from "../../../entities/comment/api"
 import { AddCommentDialog } from "./AddCommentDialog"
 import { EditCommentDialog } from "./EditCommentDialog"
+import { HighlightText } from "../../../shared/ui"
 
 interface CommentListProps {
   postId: number
   searchQuery: string
-  highlightText: (text: string | undefined, highlight: string) => React.ReactNode
 }
 
-export const CommentList = ({ postId, searchQuery, highlightText }: CommentListProps) => {
+export const CommentList = ({ postId, searchQuery }: CommentListProps) => {
   // 다이얼로그 상태 관리
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
@@ -102,7 +102,9 @@ export const CommentList = ({ postId, searchQuery, highlightText }: CommentListP
           <div key={comment.id} className="flex items-center justify-between text-sm border-b pb-1">
             <div className="flex items-center space-x-2 overflow-hidden">
               <span className="font-medium truncate">{comment.user.username}:</span>
-              <span className="truncate">{highlightText(comment.body, searchQuery)}</span>
+              <span className="truncate">
+                <HighlightText text={comment.body} highlight={searchQuery} />
+              </span>
             </div>
             <div className="flex items-center space-x-1">
               <LikeButton likes={comment.likes} onLike={() => handleLikeComment(comment.id, comment.likes)} />

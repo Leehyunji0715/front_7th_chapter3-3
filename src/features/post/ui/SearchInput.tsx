@@ -1,13 +1,14 @@
 import { Search } from "lucide-react"
 import { Input } from "../../../components"
+import { useState } from "react"
 
 interface SearchInputProps {
-  searchQuery: string
-  onSearchChange: (value: string) => void
-  onSearchEnter: () => void
+  onSearchEnter: (value: string) => void
 }
 
-export const SearchInput = ({ searchQuery, onSearchChange, onSearchEnter }: SearchInputProps) => {
+export const SearchInput = ({ onSearchEnter }: SearchInputProps) => {
+  const [input, setInput] = useState("")
+
   return (
     <div className="flex-1">
       <div className="relative">
@@ -15,9 +16,13 @@ export const SearchInput = ({ searchQuery, onSearchChange, onSearchEnter }: Sear
         <Input
           placeholder="게시물 검색..."
           className="pl-8"
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && onSearchEnter()}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === "Enter") {
+              onSearchEnter(input)
+            }
+          }}
         />
       </div>
     </div>

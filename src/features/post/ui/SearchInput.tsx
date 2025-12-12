@@ -1,13 +1,14 @@
+import { useState } from "react"
 import { Search } from "lucide-react"
 import { Input } from "../../../components"
-import { useState } from "react"
 
 interface SearchInputProps {
+  value: string
   onSearchEnter: (value: string) => void
 }
 
-export const SearchInput = ({ onSearchEnter }: SearchInputProps) => {
-  const [input, setInput] = useState("")
+export const SearchInput = ({ value, onSearchEnter }: SearchInputProps) => {
+  const [input, setInput] = useState(value)
 
   return (
     <div className="flex-1">

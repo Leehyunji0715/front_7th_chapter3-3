@@ -5,7 +5,7 @@ import { usePostQueryParams } from "../../features/post/hooks"
 
 export const PostSearchControls = () => {
   const { data: tags = [] } = useTagsQuery()
-  const { selectedTag, sortBy, sortOrder } = usePostQueryParams()
+  const { searchQuery, selectedTag, sortBy, sortOrder } = usePostQueryParams()
   const navigate = useNavigate()
 
   const updateUrl = (updates: Record<string, string>) => {
@@ -38,7 +38,7 @@ export const PostSearchControls = () => {
 
   return (
     <div className="flex gap-4">
-      <SearchInput onSearchEnter={handleSearchEnter} />
+      <SearchInput value={searchQuery} onSearchEnter={handleSearchEnter} />
       <TagSelector selectedTag={selectedTag} tags={tags} onTagChange={handleTagChange} />
       <SortControls
         sortBy={sortBy}

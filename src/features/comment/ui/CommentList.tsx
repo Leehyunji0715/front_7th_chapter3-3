@@ -81,7 +81,6 @@ export const CommentList = ({ postId, searchQuery, highlightText }: CommentListP
 
   // 댓글 좋아요 핸들러
   const handleLikeComment = (commentId: number, currentLikes: number) => {
-    console.log("currentLikes", currentLikes)
     likeCommentMutation.mutate({ commentId, currentLikes, postId })
   }
 

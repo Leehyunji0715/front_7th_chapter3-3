@@ -42,6 +42,8 @@ export const usePostsQuery = (
       postApi.fetchPosts({
         limit: filters.limit || 10,
         skip: filters.skip || 0,
+        sortBy: filters.sortBy,
+        sortOrder: filters.sortOrder,
       }),
     enabled: filters.enabled !== false, // 명시적으로 false가 아니면 실행
     staleTime: 5 * 60 * 1000, // 5분
@@ -59,10 +61,10 @@ export const useSearchPostsQuery = (searchQuery: string) => {
 }
 
 // Posts by Tag Query Hook
-export const usePostsByTagQuery = (tag: string) => {
+export const usePostsByTagQuery = (tag: string, filters: { limit?: number; skip?: number } = {}) => {
   return useQuery({
-    queryKey: postKeys.byTag(tag),
-    queryFn: () => postApi.fetchPostsByTag(tag),
+    queryKey: [...postKeys.byTag(tag), filters.limit, filters.skip],
+    queryFn: () => postApi.fetchPostsByTag({ tag, limit: filters.limit, skip: filters.skip }),
     enabled: !!tag && tag !== "all",
     staleTime: 5 * 60 * 1000,
   })

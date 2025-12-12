@@ -16,7 +16,7 @@ export const PostPagination = () => {
   })
 
   const { data: searchData } = useSearchPostsQuery(searchQuery)
-  const { data: tagData } = usePostsByTagQuery(selectedTag)
+  const { data: tagData } = usePostsByTagQuery(selectedTag, { limit, skip })
 
   const total = searchQuery
     ? searchData?.total || 0

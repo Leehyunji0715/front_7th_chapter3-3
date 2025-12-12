@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { Edit2, MessageSquare, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react"
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components"
 import { Tag } from "../../entities/ui"
@@ -20,6 +21,7 @@ interface PostTableProps {
 }
 
 export const PostTable = ({ onPostDetail }: PostTableProps) => {
+  const navigate = useNavigate()
   const { mutate: deletePost } = useDeletePostMutation()
   const { mutate: updatePost } = useUpdatePostMutation()
 
@@ -47,7 +49,7 @@ export const PostTable = ({ onPostDetail }: PostTableProps) => {
 
   const { data: searchData } = useSearchPostsQuery(searchQuery)
 
-  const { data: tagData } = usePostsByTagQuery(selectedTag)
+  const { data: tagData } = usePostsByTagQuery(selectedTag, { limit, skip })
 
   // 게시물 수정 핸들러
   const handleUpdatePost = (post: Post) => {
@@ -89,10 +91,10 @@ export const PostTable = ({ onPostDetail }: PostTableProps) => {
 
   // 태그 클릭 핸들러
   const handleTagClick = (tag: string) => {
-    const newParams = new URLSearchParams(window.location.search)
-    newParams.set("tag", tag)
-    window.history.pushState({}, "", `${window.location.pathname}?${newParams.toString()}`)
-    window.dispatchEvent(new PopStateEvent("popstate"))
+    const params = new URLSearchParams(window.location.search)
+    params.set("tag", tag)
+    params.set("skip", "0") // 태그 변경 시 첫 페이지로
+    navigate(`?${params.toString()}`)
   }
 
   // 수정 버튼 클릭 핸들러

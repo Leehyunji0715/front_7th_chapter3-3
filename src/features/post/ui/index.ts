@@ -1,6 +1,6 @@
 export { AddPostDialog } from "./AddPostDialog"
 export { EditPostDialog } from "./EditPostDialog"
-export { PostTable } from "./PostTable"
+export { PostTable } from "../../../widgets/ui/PostTable"
 export { PostPagination } from "./PostPagination"
 export { ItemsPerPageSelector } from "./ItemsPerPageSelector"
 export { PaginationNavigation } from "./PaginationNavigation"

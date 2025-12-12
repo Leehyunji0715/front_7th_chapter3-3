@@ -108,7 +108,7 @@ export const useUpdatePostMutation = () => {
   return useMutation<PostDTO, Error, PostDTO>({
     mutationFn: postApi.updatePost,
     onSuccess: (updatedPost) => {
-      // 개별 쿼리들의 데이터를 직접 업데이트 (invalidateQueries 제거로 fetch 방지)
+      // 캐시의 포스트를 직접 업데이트
       queryClient.setQueriesData({ queryKey: postKeys.lists() }, (old: PostsWithAuthorsResponse | undefined) => {
         if (!old) return old
         return {
@@ -116,6 +116,10 @@ export const useUpdatePostMutation = () => {
           posts: old.posts.map((post: Post) => (post.id === updatedPost.id ? { ...post, ...updatedPost } : post)),
         }
       })
+      console.log("Post updated successfully")
+    },
+    onError: (error) => {
+      console.error("Update post failed:", error)
     },
   })
 }

@@ -1,20 +1,20 @@
+import { useState } from "react"
 import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, Input, Textarea } from "../../../components"
-
-interface NewPostData {
-  title: string
-  body: string
-  userId: number
-}
 
 interface AddPostDialogProps {
   isOpen: boolean
   onClose: (open: boolean) => void
-  post: NewPostData
-  onPostChange: (post: Partial<NewPostData>) => void
-  onSubmit: () => void
+  onSubmit: (post: { title: string; body: string; userId: number }) => void
 }
 
-export const AddPostDialog = ({ isOpen, onClose, post, onPostChange, onSubmit }: AddPostDialogProps) => {
+export const AddPostDialog = ({ isOpen, onClose, onSubmit }: AddPostDialogProps) => {
+  const [post, setPost] = useState({ title: "", body: "", userId: 1 })
+
+  const handleSubmit = () => {
+    onSubmit(post)
+    setPost({ title: "", body: "", userId: 1 })
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
@@ -22,20 +22,24 @@ export const AddPostDialog = ({ isOpen, onClose, post, onPostChange, onSubmit }:
           <DialogTitle>새 게시물 추가</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <Input placeholder="제목" value={post.title} onChange={(e) => onPostChange({ title: e.target.value })} />
+          <Input
+            placeholder="제목"
+            value={post.title}
+            onChange={(e) => setPost((prev) => ({ ...prev, title: e.target.value }))}
+          />
           <Textarea
             rows={30}
             placeholder="내용"
             value={post.body}
-            onChange={(e) => onPostChange({ body: e.target.value })}
+            onChange={(e) => setPost((prev) => ({ ...prev, body: e.target.value }))}
           />
           <Input
             type="number"
             placeholder="사용자 ID"
             value={post.userId}
-            onChange={(e) => onPostChange({ userId: Number(e.target.value) })}
+            onChange={(e) => setPost((prev) => ({ ...prev, userId: Number(e.target.value) }))}
           />
-          <Button onClick={onSubmit}>게시물 추가</Button>
+          <Button onClick={handleSubmit}>게시물 추가</Button>
         </div>
       </DialogContent>
     </Dialog>

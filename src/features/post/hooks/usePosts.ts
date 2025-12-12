@@ -1,12 +1,7 @@
 import { useState, useCallback } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Post } from "../../../entities/post/model/types"
-import * as postApi from "../../../entities/post/api/postApi"
-import * as userApi from "../../../entities/user/api/userApi"
-
 interface UsePostsReturn {
-  // 상태
-  posts: Post[]
   total: number
   loading: boolean
   tags: { slug: string; name: string; url: string }[]
@@ -41,13 +36,6 @@ interface UsePostsReturn {
     openDialog: (dialog: keyof UsePostsReturn["dialogs"]) => void
     closeDialog: (dialog: keyof UsePostsReturn["dialogs"]) => void
     updateNewPost: (data: Partial<UsePostsReturn["newPost"]>) => void
-    fetchPosts: (currentFilters?: UsePostsReturn["filters"]) => Promise<void>
-    fetchTags: () => Promise<void>
-    searchPosts: (currentFilters?: UsePostsReturn["filters"]) => Promise<void>
-    fetchPostsByTag: (tag: string, currentFilters?: UsePostsReturn["filters"]) => Promise<void>
-    addPost: () => Promise<void>
-    updatePost: () => Promise<void>
-    deletePost: (id: number) => Promise<void>
     openPostDetail: (post: Post) => void
   }
 }
@@ -58,10 +46,9 @@ export const usePosts = (): UsePostsReturn => {
   const queryParams = new URLSearchParams(location.search)
 
   // 기본 상태
-  const [posts, setPosts] = useState<Post[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(false)
-  const [tags, setTags] = useState<{ slug: string; name: string; url: string }[]>([])
+  const [total] = useState(0)
+  const [loading] = useState(false)
+  const [tags] = useState<{ slug: string; name: string; url: string }[]>([])
 
   // 필터 상태
   const [filters, setFilters] = useState({
@@ -126,140 +113,6 @@ export const usePosts = (): UsePostsReturn => {
     setNewPost((prev) => ({ ...prev, ...data }))
   }, [])
 
-
-
-  // 게시물 가져오기
-  const fetchPosts = useCallback(async (currentFilters = filters) => {
-    setLoading(true)
-    try {
-      const [postsData, usersData] = await Promise.all([
-        postApi.fetchPosts({ limit: currentFilters.limit, skip: currentFilters.skip }),
-        userApi.fetchUsers(),
-      ])
-
-      const postsWithUsers = postsData.posts.map((post) => ({
-        ...post,
-        author: usersData.users.find((user) => user.id === post.userId),
-      }))
-
-      setPosts(postsWithUsers)
-      setTotal(postsData.total)
-    } catch (error) {
-      console.error("게시물 가져오기 오류:", error)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  // 태그 가져오기
-  const fetchTags = useCallback(async () => {
-    try {
-      const data = await postApi.fetchTags()
-      setTags(data)
-    } catch (error) {
-      console.error("태그 가져오기 오류:", error)
-    }
-  }, [])
-
-  // 게시물 검색
-  const searchPosts = useCallback(async (currentFilters = filters) => {
-    if (!currentFilters.searchQuery) {
-      fetchPosts(currentFilters)
-      return
-    }
-
-    setLoading(true)
-    try {
-      const [postsData, usersData] = await Promise.all([postApi.searchPosts(currentFilters.searchQuery), userApi.fetchUsers()])
-
-      const postsWithUsers = postsData.posts.map((post) => ({
-        ...post,
-        author: usersData.users.find((user) => user.id === post.userId),
-      }))
-
-      setPosts(postsWithUsers)
-      setTotal(postsData.total)
-    } catch (error) {
-      console.error("게시물 검색 오류:", error)
-    } finally {
-      setLoading(false)
-    }
-  }, [fetchPosts])
-
-  // 태그별 게시물 가져오기
-  const fetchPostsByTag = useCallback(
-    async (tag: string, currentFilters = filters) => {
-      if (!tag || tag === "all") {
-        fetchPosts(currentFilters)
-        return
-      }
-
-      setLoading(true)
-      try {
-        const [postsData, usersData] = await Promise.all([postApi.fetchPostsByTag(tag), userApi.fetchUsers()])
-
-        const postsWithUsers = postsData.posts.map((post) => ({
-          ...post,
-          author: usersData.users.find((user) => user.id === post.userId),
-        }))
-
-        setPosts(postsWithUsers)
-        setTotal(postsData.total)
-      } catch (error) {
-        console.error("태그별 게시물 가져오기 오류:", error)
-      } finally {
-        setLoading(false)
-      }
-    },
-    [fetchPosts],
-  )
-
-  // 게시물 추가
-  const addPost = async () => {
-    try {
-      const [data, usersData] = await Promise.all([postApi.addPost(newPost), userApi.fetchUsers()])
-
-      const postWithAuthor = {
-        ...data,
-        author: usersData.users.find((user) => user.id === data.userId),
-      }
-
-      setPosts([postWithAuthor, ...posts])
-      closeDialog("showAddDialog")
-      updateNewPost({ title: "", body: "", userId: 1 })
-    } catch (error) {
-      console.error("게시물 추가 오류:", error)
-    }
-  }
-
-  // 게시물 업데이트
-  const updatePostAction = async () => {
-    if (!selectedPost) return
-    try {
-      const [data, usersData] = await Promise.all([postApi.updatePost(selectedPost), userApi.fetchUsers()])
-
-      const postWithAuthor = {
-        ...data,
-        author: usersData.users.find((user) => user.id === data.userId),
-      }
-
-      setPosts(posts.map((post) => (post.id === data.id ? postWithAuthor : post)))
-      closeDialog("showEditDialog")
-    } catch (error) {
-      console.error("게시물 업데이트 오류:", error)
-    }
-  }
-
-  // 게시물 삭제
-  const deletePost = async (id: number) => {
-    try {
-      await postApi.deletePost(id)
-      setPosts(posts.filter((post) => post.id !== id))
-    } catch (error) {
-      console.error("게시물 삭제 오류:", error)
-    }
-  }
-
   // 게시물 상세 보기
   const openPostDetail = (post: Post) => {
     selectPost(post)
@@ -268,7 +121,6 @@ export const usePosts = (): UsePostsReturn => {
 
   return {
     // 상태
-    posts,
     total,
     selectedPost,
     newPost,
@@ -286,13 +138,6 @@ export const usePosts = (): UsePostsReturn => {
       openDialog,
       closeDialog,
       updateNewPost,
-      fetchPosts,
-      fetchTags,
-      searchPosts,
-      fetchPostsByTag,
-      addPost,
-      updatePost: updatePostAction,
-      deletePost,
       openPostDetail,
     },
   }
